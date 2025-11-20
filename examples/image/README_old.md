@@ -2,29 +2,42 @@
 
 ## Training instructions
 
-0. From base README.md
+1. Download and unpack blurred ImageNet from the [official website](https://image-net.org/download.php).
 
 ```
-conda env create -f environment.yml
+export IMAGENET_DIR=~/flow_matching/examples/image/data/
+export IMAGENET_RES=64
+tar -xf ~/Downloads/train_blurred.tar.gz -C $IMAGENET_DIR
 ```
 
-1. Set up the virtual environment. First, set up the virtual environment by following the steps in the repository's `README.md`. Then,
+2. Downsample Imagenet to the desired resolution.
+
+```
+cd ~/
+git clone git@github.com:PatrykChrabaszcz/Imagenet32_Scripts.git
+python Imagenet32_Scripts/image_resizer_imagent.py -i ${IMAGENET_DIR}train_blurred -o ${IMAGENET_DIR}train_blurred_$IMAGENET_RES -s $IMAGENET_RES -a box  -r -j 10 
+```
+
+3. Set up the virtual environment. First, set up the virtual environment by following the steps in the repository's `README.md`. Then,
 
 ```
 conda activate flow_matching
 
 cd examples/image
 pip install -r requirements.txt
-pip install git+https://github.com/openai/CLIP.git
 ```
 
-2. Set up datasets using scripts in examples/image/scripts/dataset_setup (set base_dir to your dataset folder name)
+4. [Optional] Test-run training locally. A test run executes one step of training followed by one step of evaluation.
 
-3. Change data_path argument in examples/image/train_arg_parser.py
+```
+python train.py --data_path=${IMAGENET_DIR}train_blurred_$IMAGENET_RES/box/ --test_run
+```
 
-4. Run helper scripts in examples/image/scripts (these submit to SLURM)
+5. Launch training on a SLURM cluster
 
-## From old README.md
+```
+python submitit_train.py --data_path=${IMAGENET_DIR}train_blurred_$IMAGENET_RES/box/ 
+```
 
 6. Evaluate the model using the `--eval_only` flag. The evaluation script will generate snapshots under the `/snapshots` folder. Specify the `--compute_fid` flag to also compute the FID with respect to the training set. Make sure to specify your most recent checkpoint to resume from. The results are printed to `log.txt`.
 

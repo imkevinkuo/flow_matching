@@ -1,0 +1,12 @@
+{
+  "labels": [
+    {
+      "Smiling": true,
+      "Mustache": false
+    },
+    {
+      "Smiling": false,
+      "Mustache": true
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "labels": [
+    {
+      "Bald": true,
+      "Male": false
+    },
+    {
+      "Bald": false,
+      "Male": true
+    }
+  ]
+}

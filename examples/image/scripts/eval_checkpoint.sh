@@ -5,7 +5,7 @@
 cd /data/user_data/kkuo2/flow_matching/examples/image
 
 # Configuration - modify these parameters as needed
-DATA_PATH="cat_faces,celeba"  # Must match the training data path
+DATASET="cat_faces,celeba"  # Must match the training data path
 FID_SAMPLES=16  # Number of samples to generate for FID computation
 SAVE_FID_SAMPLES=true  # Set to true to save all generated images individually
 
@@ -18,12 +18,13 @@ IMAGE_SIZE=64  # Must match training configuration
 BATCH_SIZE=4  # Batch size for generation
 MAX_EXAMPLES=4000
 
-CHECKPOINT_DIR="checkpoint/kkuo2/experiments/cat_faces_celeba_${MAX_EXAMPLES}_${IMAGE_SIZE}"  # Directory containing checkpoint and args.json
+user=kkuo2
+CHECKPOINT_DIR="checkpoint/${user}/experiments/cat_faces_celeba_${MAX_EXAMPLES}_${IMAGE_SIZE}"  # Directory containing checkpoint and args.json
 CHECKPOINT_NAME="checkpoint-699.pth"  # Name of the checkpoint file to evaluate
 
 # Run evaluation using submitit
 python submitit_train.py \
-  --data_path="${DATA_PATH}" \
+  --dataset="${DATASET}" \
   --image_size="${IMAGE_SIZE}" \
   --batch_size="${BATCH_SIZE}" \
   --nodes="${NODES}" \

@@ -1,0 +1,12 @@
+{
+  "labels": [
+    {
+      "Eyeglasses": true,
+      "Wearing_Necktie": false
+    },
+    {
+      "Eyeglasses": false,
+      "Wearing_Necktie": true
+    }
+  ]
+}

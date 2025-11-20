@@ -1,10 +1,10 @@
 #!/bin/bash
-cd /data/user_data/kkuo2/flow_matching/examples/image
-export PYTHONPATH=$PYTHONPATH:/data/user_data/kkuo2/flow_matching
-base_folder=/data/user_data/kkuo2/flow_matching/examples/image
+user=kkuo2
+cd /data/user_data/${user}/flow_matching/examples/image
+export PYTHONPATH=$PYTHONPATH:/data/user_data/${user}/flow_matching
+base_folder=/data/user_data/${user}/flow_matching/examples/image
 image_size=128
 max_examples=4000
-user=kkuo2
 python $base_folder/submitit_train.py \
   --dataset=celeba \
   --celeba_attributes=scripts/attribute_mappings/blond_glasses.json \

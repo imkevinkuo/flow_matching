@@ -1,0 +1,12 @@
+{
+  "labels": [
+    {
+      "Smiling": true,
+      "Eyeglasses": false
+    },
+    {
+      "Smiling": false,
+      "Eyeglasses": true
+    }
+  ]
+}

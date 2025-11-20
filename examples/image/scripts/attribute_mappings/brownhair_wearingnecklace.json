@@ -1,0 +1,12 @@
+{
+  "labels": [
+    {
+      "Brown_Hair": true,
+      "Wearing_Necklace": false
+    },
+    {
+      "Brown_Hair": false,
+      "Wearing_Necklace": true
+    }
+  ]
+}
