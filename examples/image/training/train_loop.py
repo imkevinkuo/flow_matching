@@ -42,6 +42,7 @@ def train_one_epoch(
     epoch: int,
     loss_scaler: NativeScalerWithGradNormCount,
     args: argparse.Namespace,
+    clip_encoder=None,
 ):
     gc.collect()
     model.train(True)
@@ -55,20 +56,36 @@ def train_one_epoch(
     else:
         path = CondOTProbPath()
 
-    for data_iter_step, (samples, labels) in enumerate(data_loader):
+    for data_iter_step, batch in enumerate(data_loader):
         if data_iter_step % accum_iter == 0:
             optimizer.zero_grad()
             batch_loss.reset()
             if data_iter_step > 0 and args.test_run:
                 break
 
+        # Handle both 2-tuple (image, label) and 3-tuple (image, label, caption)
+        if len(batch) == 3:
+            samples, labels, captions = batch
+        else:
+            samples, labels = batch
+            captions = None
+
         samples = samples.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
 
+        # Classifier-free guidance dropout - jointly drop both label and caption
         if torch.rand(1) < args.class_drop_prob:
             conditioning = {}
         else:
-            conditioning = {"label": labels}
+            conditioning = {}
+            # Add label conditioning if num_classes > 1
+            if hasattr(args, 'num_classes') and args.num_classes is not None and args.num_classes > 1:
+                conditioning["label"] = labels
+
+            # Add caption conditioning if enabled
+            if captions is not None and clip_encoder is not None:
+                caption_emb = clip_encoder.encode_captions(captions)
+                conditioning["caption_embedding"] = caption_emb.to(device)
 
         if args.discrete_flow_matching:
             samples = (samples * 255.0).to(torch.long)

@@ -38,7 +38,7 @@ MANIFEST
 # Others
 examples/image_generation/data
 examples/*/output_dir*
-examples/image/scripts
+examples/image/checkpoint
 examples/image/outputs
 examples/image/data
 examples/image/output_dir

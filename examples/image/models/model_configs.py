@@ -88,7 +88,11 @@ MODEL_CONFIGS = {
 
 
 def instantiate_model(
-    architechture: str, is_discrete: bool, use_ema: bool
+    architechture: str,
+    is_discrete: bool,
+    use_ema: bool,
+    num_classes: int = None,
+    use_captions: bool = False,
 ) -> Union[UNetModel, DiscreteUNetModel]:
     assert (
         architechture in MODEL_CONFIGS
@@ -99,12 +103,27 @@ def instantiate_model(
             config = MODEL_CONFIGS[architechture + "_discrete"]
         else:
             config = MODEL_CONFIGS[architechture]
+
+        # Override num_classes if provided
+        if num_classes is not None:
+            config = config.copy()
+            config["num_classes"] = num_classes
+
         model = DiscreteUNetModel(
             vocab_size=257,
             **config,
         )
     else:
-        model = UNetModel(**MODEL_CONFIGS[architechture])
+        config = MODEL_CONFIGS[architechture].copy()
+
+        # Override num_classes if provided
+        if num_classes is not None:
+            config["num_classes"] = num_classes
+
+        # Add use_captions flag
+        config["use_captions"] = use_captions
+
+        model = UNetModel(**config)
 
     if use_ema:
         return EMA(model=model)

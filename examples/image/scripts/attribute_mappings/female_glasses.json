@@ -1,0 +1,6 @@
+{
+  "labels": [
+    {"Male": true, "Eyeglasses": true},
+    {"Male": false, "Eyeglasses": false}
+  ]
+}

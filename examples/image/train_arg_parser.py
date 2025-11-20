@@ -73,16 +73,59 @@ def get_args_parser():
     # Dataset parameters
     parser.add_argument(
         "--dataset",
-        default=list(MODEL_CONFIGS.keys())[0],
+        # default=list(MODEL_CONFIGS.keys())[0],
         type=str,
-        choices=list(MODEL_CONFIGS.keys()),
-        help="Dataset to use.",
+        # choices=list(MODEL_CONFIGS.keys()),
+        help="comma-separated list of datasets to use.",
     )
     parser.add_argument(
         "--data_path",
-        default="./data/image_generation",
+        default="/data/matrix/projects/smith/kkuo2/concept_composition/datasets",
         type=str,
-        help="imagenet root folder with train, val and test subfolders",
+        help="Base dataset path",
+    )
+    parser.add_argument(
+        "--image_size",
+        default=None,
+        type=int,
+        help="Resize images to this size (e.g., 64 for 64x64). If None, images are loaded at their native resolution.",
+    )
+    parser.add_argument(
+        "--captions",
+        default="false",
+        type=str,
+        choices=["true", "false"],
+        help="Enable caption loading from JSON files for text conditioning",
+    )
+    parser.add_argument(
+        "--num_classes",
+        default=None,
+        type=int,
+        help="Number of classes for class conditioning (1 = unconditional, >1 = conditional). If None, auto-detected from dataset.",
+    )
+    parser.add_argument(
+        "--train_folder",
+        default="train",
+        type=str,
+        help="Name of the training folder within each dataset",
+    )
+    parser.add_argument(
+        "--val_folder",
+        default="test",
+        type=str,
+        help="Name of the validation folder within each dataset",
+    )
+    parser.add_argument(
+        "--max_examples_per_dataset",
+        default=None,
+        type=int,
+        help="Maximum number of examples to use from each dataset. If None, use all examples.",
+    )
+    parser.add_argument(
+        "--celeba_attributes",
+        default="",
+        type=str,
+        help="Comma-separated list of CelebA attributes for conditioning.",
     )
 
     parser.add_argument(
@@ -201,6 +244,15 @@ def get_args_parser():
         default=1024,
         type=int,
         help="Number of sampling steps for discrete FM.",
+    )
+    parser.add_argument(
+        "--swap_steps",
+        default=None,
+        type=str,
+        help="Path to text file containing comma-separated decimal fractions for swapping conditioning labels during evaluation. "
+             "Fractions must sum to 1.0 or less. Example file content: '0.3,0.4,0.2' (sum=0.9) will use initial label for 30%% of total steps, "
+             "swap to other label for 40%% of steps, swap back to initial label for 20%% of steps, then use other label for remaining 10%% of steps. "
+             "The fractions are converted to integer steps by multiplying by total steps and rounding.",
     )
 
     return parser

@@ -27,6 +27,9 @@ from training.grad_scaler import NativeScalerWithGradNormCount as NativeScaler
 from training.load_and_save import load_model, save_model
 from training.train_loop import train_one_epoch
 
+from dataset_utils import get_data
+from clip_encoder import CLIPEncoder
+
 logger = logging.getLogger(__name__)
 
 
@@ -45,7 +48,9 @@ def main(args):
         args_filepath = Path(args.output_dir) / "args.json"
         logger.info(f"Saving args to {args_filepath}")
         with open(args_filepath, "w") as f:
-            json.dump(vars(args), f)
+            # Convert Path objects to strings for JSON serialization
+            args_dict = {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}
+            json.dump(args_dict, f)
 
     device = torch.device(args.device)
 
@@ -55,22 +60,39 @@ def main(args):
     np.random.seed(seed)
 
     cudnn.benchmark = True
+    args.captions = args.captions.lower() == "true"
 
     logger.info(f"Initializing Dataset: {args.dataset}")
-    transform_train = get_train_transform()
-    if args.dataset == "imagenet":
-        dataset_train = datasets.ImageFolder(args.data_path, transform=transform_train)
-    elif args.dataset == "cifar10":
-        dataset_train = datasets.CIFAR10(
-            root=args.data_path,
-            train=True,
-            download=True,
-            transform=transform_train,
-        )
-    else:
-        raise NotImplementedError(f"Unsupported dataset {args.dataset}")
+    transform_train = get_train_transform(image_size=args.image_size)
+
+    # if args.dataset == "imagenet":
+    #     dataset_train = datasets.ImageFolder(args.data_path, transform=transform_train)
+    # elif args.dataset == "cifar10":
+    #     dataset_train = datasets.CIFAR10(
+    #         root=args.data_path,
+    #         train=True,
+    #         download=True,
+    #         transform=transform_train,
+    #     )
+    # else:
+    #     raise NotImplementedError(f"Unsupported dataset {args.dataset}")
+
+    logger.info("Using multi-dataset loader with caption support")
+    dataset_train, num_classes = get_data(args, transform_train, train=True)
+    if args.num_classes is None:
+        args.num_classes = num_classes
+    logger.info(f"num_classes: {num_classes}")
 
     logger.info(dataset_train)
+
+    # Initialize CLIP encoder if captions are enabled
+    clip_encoder = None
+    if args.captions:
+        logger.info("Initializing CLIP encoder for caption conditioning")
+        clip_encoder = CLIPEncoder(device)
+        args.use_captions = True
+    else:
+        args.use_captions = False
 
     logger.info("Intializing DataLoader")
     num_tasks = distributed_mode.get_world_size()
@@ -91,9 +113,11 @@ def main(args):
     # define the model
     logger.info("Initializing Model")
     model = instantiate_model(
-        architechture=args.dataset,
+        architechture="imagenet",
         is_discrete=args.discrete_flow_matching,
         use_ema=args.use_ema,
+        num_classes=args.num_classes,
+        use_captions=args.use_captions,
     )
 
     model.to(device)
@@ -159,6 +183,7 @@ def main(args):
                 epoch=epoch,
                 loss_scaler=loss_scaler,
                 args=args,
+                clip_encoder=clip_encoder,
             )
             log_stats = {
                 **{f"train_{k}": v for k, v in train_stats.items()},
@@ -199,6 +224,7 @@ def main(args):
                 epoch=epoch,
                 fid_samples=fid_samples,
                 args=args,
+                clip_encoder=clip_encoder,
             )
             log_stats.update({f"eval_{k}": v for k, v in eval_stats.items()})
 

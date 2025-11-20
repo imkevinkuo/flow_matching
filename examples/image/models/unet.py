@@ -477,6 +477,7 @@ class UNetModel(nn.Module):
     with_fourier_features: bool = False
     ignore_time: bool = False
     input_projection: bool = True
+    use_captions: bool = False
 
     image_size: int = -1  # not used...
     _target_: str = "lib.models.gd_unet.UNetModel"
@@ -506,6 +507,10 @@ class UNetModel(nn.Module):
             self.label_emb = nn.Embedding(
                 self.num_classes + 1, self.time_embed_dim, padding_idx=self.num_classes
             )
+
+        if self.use_captions:
+            # CLIP outputs 512-dimensional features
+            self.text_projection = linear(512, self.time_embed_dim)
 
         ch = input_ch = int(self.channel_mult[0] * self.model_channels)
         if self.input_projection:
@@ -680,7 +685,7 @@ class UNetModel(nn.Module):
         if self.ignore_time:
             emb = emb * 0.0
 
-        if self.num_classes and "label" not in extra:
+        if self.num_classes and extra.get("label", None) is None:
             # Hack to deal with ddp find_unused_parameters not working with activation checkpointing...
             # self.num_classes corresponds to the pad index of the embedding table
             extra["label"] = torch.full(
@@ -693,6 +698,12 @@ class UNetModel(nn.Module):
                 y.shape == x.shape[:1]
             ), f"Labels have shape {y.shape}, which does not match the batch dimension of the input {x.shape}"
             emb = emb + self.label_emb(y)
+
+        if self.use_captions and "caption_embedding" in extra:
+            caption_emb = extra["caption_embedding"]
+            # Cast to match model dtype and add to time embedding
+            caption_emb = caption_emb.to(dtype=emb.dtype)
+            emb = emb + self.text_projection(caption_emb)
 
         h = x
         if "concat_conditioning" in extra:
