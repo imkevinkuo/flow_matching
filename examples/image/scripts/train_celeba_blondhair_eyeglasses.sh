@@ -3,13 +3,16 @@ user=kkuo2
 cd /data/user_data/${user}/flow_matching/examples/image
 export PYTHONPATH=$PYTHONPATH:/data/user_data/${user}/flow_matching
 base_folder=/data/user_data/${user}/flow_matching/examples/image
-image_size=128
+# image_size=128
+# max_examples=4000
+image_size=64
 max_examples=4000
+attr_pair=blondhair_eyeglasses
 python $base_folder/submitit_train.py \
   --dataset=celeba \
-  --celeba_attributes=scripts/attribute_mappings/blond_glasses.json \
+  --celeba_attributes=scripts/attribute_mappings/${attr_pair}.json \
   --image_size=${image_size} \
-  --batch_size=4 \
+  --batch_size=32 \
   --nodes=1 \
   --ngpus=4 \
   --partition=general \
@@ -24,5 +27,5 @@ python $base_folder/submitit_train.py \
   --fid_samples=32 \
   --captions=false \
   --shared_dir=$base_folder/checkpoint \
-  --job_dir=$base_folder/checkpoint/${user}/experiments/celeba_blond_glasses_${max_examples}_${image_size} \
-  # --resume=$base_folder/checkpoint/${user}/experiments/celeba_blond_glasses_${max_examples}_${image_size}/checkpoint.pth
+  --job_dir=$base_folder/checkpoint/${user}/experiments/celeba_${attr_pair}_${max_examples}_${image_size} \
+  # --resume=$base_folder/checkpoint/${user}/experiments/celeba_${attr_pair}_${max_examples}_${image_size}/checkpoint.pth

@@ -3,9 +3,10 @@
 # This script submits a SLURM job to run train.py in eval-only mode
 
 cd /data/user_data/kkuo2/flow_matching/examples/image
+export PYTHONPATH=$PYTHONPATH:/data/user_data/kkuo2/flow_matching
 
 # Configuration - modify these parameters as needed
-DATASET="cat_faces,celeba"  # Must match the training data path
+DATASET="celeba"  # Must match the training data path
 FID_SAMPLES=16  # Number of samples to generate for FID computation
 SAVE_FID_SAMPLES=true  # Set to true to save all generated images individually
 
@@ -19,8 +20,8 @@ BATCH_SIZE=4  # Batch size for generation
 MAX_EXAMPLES=4000
 
 user=kkuo2
-CHECKPOINT_DIR="checkpoint/${user}/experiments/cat_faces_celeba_${MAX_EXAMPLES}_${IMAGE_SIZE}"  # Directory containing checkpoint and args.json
-CHECKPOINT_NAME="checkpoint-699.pth"  # Name of the checkpoint file to evaluate
+CHECKPOINT_DIR="checkpoint/${user}/experiments/celeba_blondhair_eyeglasses_${MAX_EXAMPLES}_${IMAGE_SIZE}"  # Directory containing checkpoint and args.json
+CHECKPOINT_NAME="checkpoint-1799.pth"  # Name of the checkpoint file to evaluate
 
 # Run evaluation using submitit
 python submitit_train.py \
@@ -31,9 +32,13 @@ python submitit_train.py \
   --ngpus="${NGPUS}" \
   --partition="${PARTITION}" \
   --timeout="${TIMEOUT}" \
+  --shared_dir=/data/user_data/kkuo2/flow_matching/examples/image/checkpoint \
   --job_dir="${CHECKPOINT_DIR}/eval_%j" \
   --resume="${CHECKPOINT_DIR}/${CHECKPOINT_NAME}" \
   --eval_only \
+  --epochs=2000 \
   --fid_samples="${FID_SAMPLES}" \
-  --swap_steps="swap_schedules/50_50.txt" \
+  --celeba_attributes=/data/user_data/kkuo2/flow_matching/examples/image/scripts/attribute_mappings/blondhair_eyeglasses.json \
+  --swap_steps="/data/user_data/kkuo2/flow_matching/examples/image/scripts/swap_schedules/50_50.txt" \
+  --max_examples_per_dataset="${MAX_EXAMPLES}" \
   $([ "${SAVE_FID_SAMPLES}" = "true" ] && echo "--save_fid_samples")
