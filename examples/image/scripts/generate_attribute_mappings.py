@@ -1,41 +1,32 @@
 #!/usr/bin/env python3
 """
 Generate attribute mapping files for pairs of CelebA attributes.
-Excludes pairs where both attributes contain "Hair" or one has "Hair" and the other is "Bald".
+Generates pairs from the product of ATTRIBUTES1 and ATTRIBUTES2.
 """
 
 import json
 import os
 from pathlib import Path
-from itertools import combinations
+from itertools import product
 
-# List of attributes to generate pairs from
-ATTRIBUTES = [
+# First set of attributes
+ATTRIBUTES1 = [
     "Bald",
-    "Black_Hair",
     "Blond_Hair",
-    "Brown_Hair",
-    "Gray_Hair",
-    "Male",
-    "Smiling",
-    "Eyeglasses",
-    "Mustache",
-    "Wearing_Earrings",
-    "Wearing_Hat",
-    "Wearing_Necklace",
-    "Wearing_Necktie",
 ]
 
-def should_exclude_pair(attr1, attr2):
-    """
-    Check if a pair should be excluded based on the rules:
-    - Both attributes contain "Hair"
-    - One has "Hair" and the other is "Bald"
-    """
-    has_hair_1 = "Hair" in attr1 or attr1 == "Bald"
-    has_hair_2 = "Hair" in attr2 or attr2 == "Bald"
+# Second set of attributes
+ATTRIBUTES2 = [
+    "Smiling",
+    "Eyeglasses",
+    # "Mustache",
+    "Wearing_Lipstick",
+    # "Wearing_Earrings",
+    # "Wearing_Hat",
+    # "Wearing_Necklace",
+    # "Wearing_Necktie",
+]
 
-    return has_hair_1 and has_hair_2
 
 def generate_mapping_file(attr1, attr2, output_dir):
     """
@@ -66,26 +57,21 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     print(f"Generating attribute mapping files in: {output_dir}")
-    print(f"Total attributes: {len(ATTRIBUTES)}")
+    print(f"ATTRIBUTES1: {len(ATTRIBUTES1)} attributes")
+    print(f"ATTRIBUTES2: {len(ATTRIBUTES2)} attributes")
+    print(f"Total pairs: {len(ATTRIBUTES1) * len(ATTRIBUTES2)}")
     print()
 
     generated_count = 0
-    excluded_count = 0
 
-    # Generate all pairs
-    for attr1, attr2 in combinations(ATTRIBUTES, 2):
-        if should_exclude_pair(attr1, attr2):
-            print(f"Excluded: {attr1} <-> {attr2} (Hair/Bald rule)")
-            excluded_count += 1
-        else:
-            generate_mapping_file(attr1, attr2, output_dir)
-            generated_count += 1
+    # Generate all pairs from the product of ATTRIBUTES1 and ATTRIBUTES2
+    for attr1, attr2 in product(ATTRIBUTES1, ATTRIBUTES2):
+        generate_mapping_file(attr1, attr2, output_dir)
+        generated_count += 1
 
     print()
     print(f"Summary:")
     print(f"  Generated: {generated_count} files")
-    print(f"  Excluded: {excluded_count} pairs")
-    print(f"  Total pairs considered: {generated_count + excluded_count}")
 
 if __name__ == "__main__":
     main()

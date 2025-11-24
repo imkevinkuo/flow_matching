@@ -2,11 +2,11 @@
   "labels": [
     {
       "Bald": true,
-      "Wearing_Necklace": false
+      "Wearing_Lipstick": false
     },
     {
       "Bald": false,
-      "Wearing_Necklace": true
+      "Wearing_Lipstick": true
     }
   ]
 }

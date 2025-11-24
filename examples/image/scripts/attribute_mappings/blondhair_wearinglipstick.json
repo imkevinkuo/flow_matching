@@ -2,11 +2,11 @@
   "labels": [
     {
       "Blond_Hair": true,
-      "Mustache": false
+      "Wearing_Lipstick": false
     },
     {
       "Blond_Hair": false,
-      "Mustache": true
+      "Wearing_Lipstick": true
     }
   ]
 }
